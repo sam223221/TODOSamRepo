@@ -9,6 +9,7 @@
       "ToDoApp/1.0.0": {
         "dependencies": {
           "Microsoft.AspNetCore.Components.Authorization": "8.0.8",
+          "Microsoft.AspNetCore.Components.WebAssembly.Server": "8.0.8",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "8.0.10",
           "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": "8.0.8",
           "Microsoft.EntityFrameworkCore.Design": "8.0.8",
@@ -58,6 +59,14 @@
         "runtime": {
           "lib/net8.0/Microsoft.AspNetCore.Components.Authorization.dll": {
             "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.824.36908"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Components.WebAssembly.Server/8.0.8": {
+        "runtime": {
+          "lib/net8.0/Microsoft.AspNetCore.Components.WebAssembly.Server.dll": {
+            "assemblyVersion": "8.0.8.0",
             "fileVersion": "8.0.824.36908"
           }
         }
@@ -656,6 +665,13 @@
       "sha512": "sha512-1PISsw6JLsYb3gz4P/aitTMAOeasS0uQDvpwF9MsZlE1DcOYgM0U/RuP/SwzGGu5cAYHswL6X0A2qI/0b+cdzQ==",
       "path": "microsoft.aspnetcore.components.authorization/8.0.8",
       "hashPath": "microsoft.aspnetcore.components.authorization.8.0.8.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.Components.WebAssembly.Server/8.0.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-A35HWbJDullxT0j6kw6lpl5F3c6C3ZxMj1lr5qMQhhvQG/vxVbLwSHFn+n4VajC5ohowZZtM4olbXIpikWE0Ow==",
+      "path": "microsoft.aspnetcore.components.webassembly.server/8.0.8",
+      "hashPath": "microsoft.aspnetcore.components.webassembly.server.8.0.8.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Cryptography.Internal/8.0.10": {
       "type": "package",

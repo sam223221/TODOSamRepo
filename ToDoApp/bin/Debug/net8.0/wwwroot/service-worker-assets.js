@@ -1,12 +1,12 @@
 self.assetsManifest = {
-  "version": "/mOk1ESd",
+  "version": "81T1zkV3",
   "assets": [
     {
       "hash": "sha256-inYKeE95Vw4G/csMaiZ36mbDBCMLeSXqMT1jtG2LpAc=",
       "url": "app.css"
     },
     {
-      "hash": "sha256-EKoFxQAvHsaCKWWfrDDCNwv5NRQiOm1sSXevb390mEA=",
+      "hash": "sha256-C53TYLKMxhdTUJ3xcFwgSGZnmdSkNWkWHWUvYfBjz6Q=",
       "url": "app.output.css"
     },
     {
@@ -26,7 +26,7 @@ self.assetsManifest = {
       "url": "manifest.webmanifest"
     },
     {
-      "hash": "sha256-fkTZlShjHLpuoMi1M9czfG3WZtCyekWTvS1Spaibe18=",
+      "hash": "sha256-AA6vH5k6HU+hfIkeb+KvImHXvPXpZXoz2pi5C/sloQ4=",
       "url": "output.css"
     }
   ]

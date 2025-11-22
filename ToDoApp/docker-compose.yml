@@ -1,21 +1,37 @@
 version: "3.9"
 
 services:
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=caching_sha2_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-ToDo}
+      MYSQL_USER: ${DB_USER:-todoapp}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-change_me}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-supersecretroot}
+    volumes:
+      - todoapp-db:/var/lib/mysql
+    restart: unless-stopped
+
   todoapp:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         DOTNET_VERSION: "8.0"
+    depends_on:
+      - db
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      DB_NAME: ToDo
-      DB_USER: todoapp
-      DB_PASSWORD: verydangeruspassword
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-ToDo}
+      DB_USER: ${DB_USER:-todoapp}
+      DB_PASSWORD: ${DB_PASSWORD:-change_me}
+      # Optional: override full connection string if you have one
+      # ConnectionStrings__DefaultConnection: "Server=db;Port=3306;Database=ToDo;User=todoapp;Password=change_me;TreatTinyAsBoolean=true;AllowUserVariables=True;Connection Timeout=30"
     ports:
-      - "80:8080"      # host:container
-    volumes:
-      - todoapp-db:/var/lib/mysql
+      - "80:8080"
     restart: unless-stopped
 
 volumes:

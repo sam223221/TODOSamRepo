@@ -12,10 +12,6 @@ RUN dotnet publish -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS final
 WORKDIR /app
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends mariadb-server \
-    && rm -rf /var/lib/apt/lists/*
-
 ENV ASPNETCORE_URLS=http://+:8080
 
 COPY docker-entrypoint.sh /entrypoint.sh
