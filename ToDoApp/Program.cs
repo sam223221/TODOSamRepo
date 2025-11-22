@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using ToDoApp.Components;
@@ -65,6 +66,13 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+        new[] { "application/octet-stream", "application/wasm" });
+});
+
 builder.Services.AddHttpClient("ToDoApp.Api", (sp, client) =>
 {
     var httpContext = sp.GetService<IHttpContextAccessor>()?.HttpContext;
@@ -101,9 +109,18 @@ else
     app.UseDeveloperExceptionPage();
 }
 
+app.UseResponseCompression();
+
 app.UseStatusCodePagesWithReExecute("/not-found");
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        const int durationInSeconds = 60 * 60 * 24 * 30; // 30 days
+        ctx.Context.Response.Headers.CacheControl = "public,max-age=" + durationInSeconds;
+    }
+});
 app.UseRouting();
 
 app.UseAuthentication();
