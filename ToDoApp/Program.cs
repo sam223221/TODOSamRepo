@@ -65,14 +65,23 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
-builder.Services.AddScoped(sp =>
+builder.Services.AddHttpClient("ToDoApp.Api", (sp, client) =>
 {
-    // In the browser, NavigationManager is available and gives the correct origin.
-    // On the server (prerender), NavigationManager is null, so fall back to the local Kestrel binding.
-    var navigation = sp.GetService<NavigationManager>();
-    var baseUri = navigation?.BaseUri ?? "http://localhost:8080/";
-    return new HttpClient { BaseAddress = new Uri(baseUri) };
+    var httpContext = sp.GetService<IHttpContextAccessor>()?.HttpContext;
+    if (httpContext is not null)
+    {
+        var request = httpContext.Request;
+        var baseUrl = $"{request.Scheme}://{request.Host}{request.PathBase}/";
+        client.BaseAddress = new Uri(baseUrl);
+    }
+    else
+    {
+        // Fallback for non-HTTP contexts (e.g., background resolutions)
+        client.BaseAddress = new Uri("http://localhost:8080/");
+    }
 });
+
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ToDoApp.Api"));
 
 var app = builder.Build();
 
