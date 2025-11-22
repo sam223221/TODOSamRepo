@@ -11,7 +11,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       DB_NAME: ToDo
       DB_USER: todoapp
-      DB_PASSWORD: ${DB_PASSWORD:?set-in-hostinger}
+      DB_PASSWORD: verydangeruspassword
     ports:
       - "8080:8080"
     volumes:
