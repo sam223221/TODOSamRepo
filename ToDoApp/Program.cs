@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -64,13 +65,14 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
-builder.Services.AddHttpClient("ToDoApp.Api", (sp, client) =>
+builder.Services.AddScoped(sp =>
 {
-    // Hardcoded base URL for API calls; update when moving hosts.
-    client.BaseAddress = new Uri("http://148.230.116.159/");
+    // In the browser, NavigationManager is available and gives the correct origin.
+    // On the server (prerender), NavigationManager is null, so fall back to the local Kestrel binding.
+    var navigation = sp.GetService<NavigationManager>();
+    var baseUri = navigation?.BaseUri ?? "http://localhost:8080/";
+    return new HttpClient { BaseAddress = new Uri(baseUri) };
 });
-
-builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ToDoApp.Api"));
 
 var app = builder.Build();
 
