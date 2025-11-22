@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -65,11 +64,13 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
-builder.Services.AddScoped(sp =>
+builder.Services.AddHttpClient("ToDoApp.Api", (sp, client) =>
 {
-    var navigation = sp.GetRequiredService<NavigationManager>();
-    return new HttpClient { BaseAddress = new Uri(navigation.BaseUri) };
+    // Hardcoded base URL for API calls; update when moving hosts.
+    client.BaseAddress = new Uri("http://148.230.116.159/");
 });
+
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ToDoApp.Api"));
 
 var app = builder.Build();
 
