@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   todoapp:
     build:
@@ -10,8 +12,8 @@ services:
       DB_NAME: ToDo
       DB_USER: todoapp
       DB_PASSWORD: verydangeruspassword
-    expose:
-      - "80:8080"                        # only inside Docker network
+    ports:
+      - "80:8080"      # host:container
     volumes:
       - todoapp-db:/var/lib/mysql
     restart: unless-stopped
