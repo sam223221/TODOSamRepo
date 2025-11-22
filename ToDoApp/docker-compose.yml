@@ -13,7 +13,7 @@ services:
       DB_USER: todoapp
       DB_PASSWORD: verydangeruspassword
     ports:
-      - "8080:8080"
+      - "80:8080"      # host:container
     volumes:
       - todoapp-db:/var/lib/mysql
     restart: unless-stopped
