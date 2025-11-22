@@ -1,0 +1,300 @@
+﻿@page "/settings"
+@attribute [Authorize]
+@inject IAuthService AuthService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<div class="mb-8 flex items-center justify-between px-4 pt-8">
+    <h3 class="text-3xl font-extrabold text-[#1A3B2B]">Settings</h3>
+</div>
+
+@if (isLoading)
+{
+    <div class="mx-auto max-w-3xl rounded-2xl bg-white px-6 py-6 text-center shadow-md">
+        <p class="text-gray-600">Loading settings...</p>
+    </div>
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <div class="mx-auto max-w-3xl rounded-2xl bg-red-100 px-6 py-6 text-center text-red-800 shadow-md">@error</div>
+}
+else if (profileModel is not null)
+{
+    <div class="space-y-8">
+        <section class="mx-auto max-w-3xl space-y-5 rounded-3xl bg-white px-6 py-8 shadow-lg ring-1 ring-slate-900/5">
+            <div class="mb-6 flex items-center justify-between">
+                <div>
+                    <h4 class="text-xl font-bold text-slate-900">Profile</h4>
+                    <p class="text-sm text-slate-500">Update the basics that appear across the app.</p>
+                </div>
+            </div>
+
+            <EditForm Model="@profileModel" OnValidSubmit="SaveProfile" class="space-y-5">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="mb-2" />
+
+                <div class="grid gap-5 md:grid-cols-2">
+                    <div>
+                        <label class="text-sm font-bold text-slate-700">Display name</label>
+                        <InputText @bind-Value="profileModel.DisplayName" class="mt-2 w-full rounded-xl border-0 bg-slate-50 px-5 py-4 text-slate-900 shadow-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-[#174928]" />
+                    </div>
+                    <div>
+                        <label class="text-sm font-bold text-slate-700">Email</label>
+                        <InputText @bind-Value="profileModel.Email" class="mt-2 w-full rounded-xl border-0 bg-slate-50 px-5 py-4 text-slate-900 shadow-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-[#174928]" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-sm font-bold text-slate-700">Theme</label>
+                    <select @bind="profileModel.ThemePreference" class="mt-2 w-full rounded-xl border-0 bg-slate-50 px-5 py-4 text-slate-900 shadow-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-[#174928]">
+                        <option value="sprout">Sprout (default)</option>
+                        <option value="orchid">Orchid</option>
+                        <option value="midnight">Midnight</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full rounded-xl bg-[#174928] py-4 text-lg font-bold text-white shadow-[#174928]/30 shadow-lg transition hover:scale-[1.01]" disabled="@savingProfile">
+                    @(savingProfile ? "Saving..." : "Save profile")
+                </button>
+            </EditForm>
+        </section>
+
+        <section class="mx-auto max-w-3xl space-y-5 rounded-3xl bg-white px-6 py-8 shadow-lg ring-1 ring-slate-900/5">
+            <div class="mb-2">
+                <h4 class="text-xl font-bold text-slate-900">Reminders</h4>
+                <p class="text-sm text-slate-500">Configure digest time and reminder emails.</p>
+            </div>
+
+            <EditForm Model="@notificationModel" OnValidSubmit="SaveNotifications" class="space-y-5">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <label class="flex items-center gap-3 font-medium text-slate-900">
+                    <InputCheckbox @bind-Value="notificationModel.ReceiveReminders" class="h-5 w-5 rounded border-slate-300 text-[#174928] focus:ring-[#174928]" />
+                    Send me reminder emails
+                </label>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-slate-700">Daily digest time</label>
+                    <InputText type="time" @bind-Value="notificationModel.DailyDigestTime" class="mt-2 w-full rounded-xl border-0 bg-slate-50 px-5 py-4 text-slate-900 shadow-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-[#174928]" />
+                    <p class="mt-1 text-xs text-slate-500">We'll send one summary per day at this time.</p>
+                </div>
+
+                <button type="submit" class="w-full rounded-xl bg-[#174928] py-4 text-lg font-bold text-white shadow-[#174928]/30 shadow-lg transition hover:scale-[1.01]" disabled="@savingNotifications">
+                    @(savingNotifications ? "Saving..." : "Save reminder settings")
+                </button>
+            </EditForm>
+        </section>
+
+        <section class="mx-auto max-w-3xl space-y-5 rounded-3xl border-t-4 border-rose-500 bg-white px-6 py-8 shadow-lg ring-1 ring-slate-900/5">
+            <div class="space-y-1">
+                <h4 class="text-xl font-bold text-slate-900">Security</h4>
+                <p class="text-sm text-slate-500">Rotate your password regularly.</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(passwordMessage))
+            {
+                <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">@passwordMessage</div>
+            }
+
+            <EditForm Model="@passwordModel" OnValidSubmit="ChangePassword" class="space-y-4">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="grid gap-4 md:grid-cols-2">
+                    <div class="md:col-span-2">
+                        <label class="text-sm font-bold text-slate-700">Current password</label>
+                        <InputText type="password" @bind-Value="passwordModel.CurrentPassword" class="mt-2 w-full rounded-xl border-0 bg-slate-50 px-5 py-4 text-slate-900 shadow-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-[#174928]" />
+                    </div>
+                    <div>
+                        <label class="text-sm font-bold text-slate-700">New password</label>
+                        <InputText type="password" @bind-Value="passwordModel.NewPassword" class="mt-2 w-full rounded-xl border-0 bg-slate-50 px-5 py-4 text-slate-900 shadow-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-[#174928]" />
+                    </div>
+                    <div>
+                        <label class="text-sm font-bold text-slate-700">Confirm new password</label>
+                        <InputText type="password" @bind-Value="passwordModel.ConfirmPassword" class="mt-2 w-full rounded-xl border-0 bg-slate-50 px-5 py-4 text-slate-900 shadow-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-[#174928]" />
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full rounded-xl bg-rose-600 py-4 text-lg font-bold text-white shadow-lg shadow-rose-600/30 transition hover:scale-[1.01]" disabled="@changingPassword">
+                    @(changingPassword ? "Updating password..." : "Update password")
+                </button>
+            </EditForm>
+        </section>
+
+        <div class="flex pb-8">
+            <form method="post" action="/auth/logout" class="w-full">
+                <button type="submit" class="w-full rounded-xl bg-rose-600 py-4 text-lg font-bold text-white shadow-sm transition hover:bg-rose-800">
+                    Sign out
+                </button>
+            </form>
+        </div>
+    </div>
+}
+
+@code {
+    private ProfileModel? profileModel;
+    private NotificationModel notificationModel = new();
+    private PasswordModel passwordModel = new();
+    private bool isLoading = true;
+    private bool savingProfile;
+    private bool savingNotifications;
+    private bool changingPassword;
+    private string? error;
+    private string? passwordMessage;
+    private ToDoApp.Data.ApplicationUser? currentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserAsync();
+    }
+
+    private async Task LoadUserAsync()
+    {
+        isLoading = true;
+        error = null;
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        currentUser = await AuthService.GetUserAsync(authState.User);
+
+        if (currentUser is null)
+        {
+            error = "Unable to load user profile.";
+            isLoading = false;
+            return;
+        }
+
+        profileModel = new ProfileModel
+        {
+            DisplayName = string.IsNullOrWhiteSpace(currentUser.DisplayName) ? currentUser.Email ?? string.Empty : currentUser.DisplayName,
+            Email = currentUser.Email ?? string.Empty,
+            ThemePreference = currentUser.ThemePreference
+        };
+
+        notificationModel = new NotificationModel
+        {
+            ReceiveReminders = currentUser.ReceiveReminders,
+            DailyDigestTime = currentUser.DailyDigestTime?.ToString(@"hh\:mm") ?? "08:00"
+        };
+
+        isLoading = false;
+    }
+
+    private async Task SaveProfile()
+    {
+        if (currentUser is null || profileModel is null)
+        {
+            return;
+        }
+
+        try
+        {
+            savingProfile = true;
+            error = null;
+            var updated = await AuthService.UpdateProfileAsync(
+                currentUser.Id,
+                profileModel.DisplayName.Trim(),
+                profileModel.Email.Trim(),
+                profileModel.ThemePreference);
+
+            if (!updated)
+            {
+                error = "Unable to update profile. The email may already be in use.";
+            }
+            else
+            {
+                currentUser = await AuthService.GetByIdAsync(currentUser.Id) ?? currentUser;
+            }
+        }
+        finally
+        {
+            savingProfile = false;
+        }
+    }
+
+    private async Task SaveNotifications()
+    {
+        if (currentUser is null)
+        {
+            return;
+        }
+
+        try
+        {
+            savingNotifications = true;
+            error = null;
+            TimeSpan? digest = null;
+            if (TimeSpan.TryParse(notificationModel.DailyDigestTime, out var parsedDigest))
+            {
+                digest = parsedDigest;
+            }
+
+            var updated = await AuthService.UpdateNotificationsAsync(currentUser.Id, notificationModel.ReceiveReminders, digest);
+            if (!updated)
+            {
+                error = "Unable to update reminder settings right now.";
+            }
+        }
+        finally
+        {
+            savingNotifications = false;
+        }
+    }
+
+    private async Task ChangePassword()
+    {
+        if (currentUser is null)
+        {
+            return;
+        }
+
+        if (passwordModel.NewPassword != passwordModel.ConfirmPassword)
+        {
+            passwordMessage = "New passwords do not match.";
+            return;
+        }
+
+        try
+        {
+            changingPassword = true;
+            var result = await AuthService.ChangePasswordAsync(currentUser.Id, passwordModel.CurrentPassword, passwordModel.NewPassword);
+            passwordMessage = result.Succeeded
+                ? "Password updated successfully."
+                : result.Error ?? "Unable to update password right now.";
+        }
+        finally
+        {
+            changingPassword = false;
+        }
+    }
+
+    private sealed class ProfileModel
+    {
+        [Required]
+        [MaxLength(40)]
+        public string DisplayName { get; set; } = string.Empty;
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        public string ThemePreference { get; set; } = "sprout";
+    }
+
+    private sealed class NotificationModel
+    {
+        public bool ReceiveReminders { get; set; } = true;
+        public string DailyDigestTime { get; set; } = "08:00";
+    }
+
+    private sealed class PasswordModel
+    {
+        [Required]
+        public string CurrentPassword { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100, MinimumLength = 6)]
+        public string NewPassword { get; set; } = string.Empty;
+
+        [Required]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}

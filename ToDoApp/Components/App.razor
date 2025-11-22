@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#375FBF" />
+    <base href="/" />
+    <link rel="stylesheet" href="output.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <HeadOutlet @rendermode="InteractiveServer" />
+    <link rel="manifest" href="/manifest.webmanifest">
+</head>
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <script>
+        if ("serviceWorker" in navigator) {
+          window.addEventListener("load", () => {
+            navigator.serviceWorker.register("/service-worker.js")
+              .catch(error => console.error("Service worker registration failed", error));
+          });
+        }
+    </script>
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>

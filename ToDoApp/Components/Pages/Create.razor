@@ -1,0 +1,326 @@
+﻿@page "/create"
+@attribute [Authorize]
+@inject ITaskService TaskService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<div class="mb-8 flex items-center justify-between px-4 pt-8">
+    <h3 class="text-3xl font-extrabold text-[#1A3B2B]">Create Task</h3>
+</div>
+
+<div class="mx-auto w-full max-w-md rounded-2xl bg-white px-6 py-8 shadow-lg ring-1 ring-slate-900/5">
+
+    <EditForm Model="@newTask" OnValidSubmit="HandleValidSubmit" class="space-y-6">
+        <DataAnnotationsValidator />
+
+        <!-- Title -->
+        <div class="space-y-2">
+            <label for="title" class="ml-1 block text-sm font-bold text-gray-700">Title</label>
+            <InputText id="title" @bind-Value="newTask.Title" class="block w-full rounded-xl border-0 bg-gray-50 px-3 py-3 text-gray-900 shadow-md ring-1 ring-gray-200 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-[#1A3B2B] focus:ring-inset sm:text-sm sm:leading-6" placeholder="What needs to be done?" />
+            <ValidationMessage For="@(() => newTask.Title)" class="mt-1 block text-xs font-medium text-red-600" />
+        </div>
+
+        <!-- Description -->
+        <div class="space-y-2">
+            <label for="description" class="ml-1 block text-sm font-bold text-gray-700">Description</label>
+            <InputTextArea id="description" @bind-Value="newTask.Description" class="block w-full rounded-xl border-0 bg-gray-50 px-3 py-3 text-gray-900 shadow-md ring-1 ring-gray-200 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-[#1A3B2B] focus:ring-inset sm:text-sm sm:leading-6" rows="3" placeholder="Add details..." />
+            <ValidationMessage For="@(() => newTask.Description)" class="mt-1 block text-xs font-medium text-red-600" />
+        </div>
+
+        <!-- Schedule Toggle -->
+        <div class="flex items-center justify-between rounded-xl bg-white p-1 shadow-md shadow-md transition-colors hover:bg-gray-50">
+            <label for="schedule-toggle" class="flex flex-1 cursor-pointer flex-col pl-1">
+                <span class="font-bold text-gray-900">Schedule Task</span>
+                <span class="text-xs text-gray-500">Set a due date and time</span>
+            </label>
+            <div class="relative inline-flex items-center pr-1">
+                <InputCheckbox id="schedule-toggle" @bind-Value="IsSchedulable" class="peer sr-only" />
+                <label for="schedule-toggle" class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out peer-checked:bg-[#174928] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#1A3B2B] peer-focus:ring-offset-2">
+                    <span class="sr-only">Use setting</span>
+                    <span aria-hidden="true" class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out peer-checked:translate-x-5"></span>
+                </label>
+            </div>
+        </div>
+
+        @if (newTask.IsSchedulable)
+        {
+            <div class="animate-in slide-in-from-top-2 fade-in space-y-3 duration-200">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div class="space-y-2">
+                        <label class="ml-1 block text-sm font-bold text-gray-700">Date</label>
+                        <InputDate @bind-Value="ScheduleDate" class="block w-full rounded-xl border-0 bg-gray-50 px-3 py-3 text-gray-900 shadow-md ring-1 ring-gray-200 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-[#1A3B2B] focus:ring-inset sm:text-sm sm:leading-6" />
+                    </div>
+                    <div class="space-y-2">
+                        <label class="ml-1 block text-sm font-bold text-gray-700">Time</label>
+                        <InputText type="time" @bind-Value="ScheduleTimeText" class="block w-full rounded-xl border-0 bg-gray-50 px-3 py-3 text-gray-900 shadow-md ring-1 ring-gray-200 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-[#1A3B2B] focus:ring-inset sm:text-sm sm:leading-6" />
+                    </div>
+                </div>
+
+                <p class="text-xs text-gray-500">We use your device's local time when scheduling.</p>
+
+                @if (!string.IsNullOrEmpty(scheduleError))
+                {
+                    <p class="text-sm font-semibold text-red-600">@scheduleError</p>
+                }
+            </div>
+        }
+
+        <!-- Repeat Toggle -->
+        <div class="flex items-center justify-between rounded-xl bg-white p-1 shadow-md transition-colors hover:bg-gray-50">
+            <label for="repeat-toggle" class="flex flex-1 cursor-pointer flex-col pl-1">
+                <span class="font-bold text-gray-900">Repeat Task</span>
+                @if (newTask.IsRepeatable)
+                {
+                    <span class="text-xs text-gray-500">Repeats every @newTask.RepeatInterval @newTask.Frequency</span>
+
+                }
+                else
+                {
+                    <span class="text-xs text-gray-500">Enable to make task repeatable</span>
+                }
+            </label>
+             <div class="relative inline-flex items-center pr-1">
+                <InputCheckbox id="repeat-toggle" @bind-Value="IsRepeatable" class="peer sr-only" />
+                <label for="repeat-toggle" class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 transition-colors duration-200 ease-in-out peer-checked:bg-[#174928] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#1A3B2B] peer-focus:ring-offset-2">
+                    <span class="sr-only">Use setting</span>
+                    <span aria-hidden="true" class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out peer-checked:translate-x-5"></span>
+                </label>
+            </div>
+        </div>
+
+        @if (newTask.IsRepeatable)
+        {
+            <div class="animate-in slide-in-from-top-2 fade-in space-y-4 rounded-xl bg-gray-50 p-4 shadow-md duration-200">
+
+                <!-- Frequency Selection -->
+                <div class="grid grid-cols-4 gap-2">
+                    @foreach (var freq in Enum.GetValues<TaskItem.RepeatFrequency>())
+                    {
+                        <button type="button" @onclick="() => newTask.Frequency = freq"
+                                class=" @(newTask.Frequency == freq ? "bg-[#174928] text-white shadow-inner shadow-black" : "bg-white text-gray-600 shadow-md hover:bg-gray-100") flex items-center justify-center rounded-xl py-2 text-xs font-bold transition-all">
+                            @freq
+                        </button>
+                    }
+                </div>
+
+                <!-- Interval Input -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-bold text-gray-700 w-24">Repeat every</span>
+                        <InputNumber @bind-Value="newTask.RepeatInterval" min="1" max="99" class="block w-20 rounded-xl border-0 bg-white px-3 py-2 text-center text-gray-900 shadow-md ring-1 ring-gray-200 ring-inset focus:ring-2 focus:ring-[#1A3B2B] focus:ring-inset sm:text-sm sm:leading-6" />
+                        <span class="text-sm font-bold text-gray-700">
+                            @(GetFrequencyUnit(newTask.Frequency))@((newTask.RepeatInterval ?? 1) > 1 ? "s" : string.Empty)
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-bold text-gray-700 w-24">For</span>
+                        <InputNumber @bind-Value="newTask.RecurringCount" min="1" max="100" class="block w-20 rounded-xl border-0 bg-white px-3 py-2 text-center text-gray-900 shadow-md ring-1 ring-gray-200 ring-inset focus:ring-2 focus:ring-[#1A3B2B] focus:ring-inset sm:text-sm sm:leading-6" />
+                        <span class="text-sm font-bold text-gray-700">
+                            occurrences
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-500 italic">
+                        Creates @newTask.RecurringCount tasks in total, starting from the scheduled date.
+                    </p>
+                </div>
+            </div>
+        }
+
+        <!-- Priority -->
+        <div class="space-y-2">
+            <label class="ml-1 block text-sm font-bold text-gray-700">Priority</label>
+            <div class="flex gap-3">
+                @foreach (var priority in Enum.GetValues<TaskItem.Priority>())
+                {
+                    <button type="button" @onclick="() => newTask.TaskPriority = priority"
+                            class="@GetPriorityClass(priority) shadow-md flex-1 rounded-xl border py-3 text-sm font-bold transition-all duration-200">
+                        @priority
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-4">
+            <button type="submit" class="flex w-full items-center justify-center rounded-xl bg-[#174928] py-4 text-lg font-bold text-white shadow-[#1A3B2B]/20 shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl active:scale-95" disabled="@isSaving">
+                @(isSaving ? "Saving..." : "Create Task")
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private TaskInputModel newTask = new()
+    {
+        TaskPriority = TaskItem.Priority.Medium,
+        RepeatInterval = 1
+    };
+
+    private DateOnly? scheduleDate;
+    private TimeSpan? scheduleTime;
+    private string? scheduleError;
+
+    protected override void OnInitialized()
+    {
+        var now = DateTime.Now;
+        scheduleDate = DateOnly.FromDateTime(now);
+        scheduleTime = TrimToMinute(now.TimeOfDay);
+        UpdateScheduleFromParts();
+    }
+
+    private bool IsSchedulable
+    {
+        get => newTask.IsSchedulable;
+        set
+        {
+            newTask.IsSchedulable = value;
+            if (!value)
+            {
+                newTask.IsRepeatable = false;
+                scheduleError = null;
+                newTask.Schedule = null;
+            }
+            else
+            {
+                if (scheduleDate is null || scheduleTime is null)
+                {
+                    var now = DateTime.Now;
+                    scheduleDate = DateOnly.FromDateTime(now);
+                    scheduleTime = TrimToMinute(now.TimeOfDay);
+                }
+                UpdateScheduleFromParts();
+            }
+        }
+    }
+
+    private bool IsRepeatable
+    {
+        get => newTask.IsRepeatable;
+        set
+        {
+            newTask.IsRepeatable = value;
+            if (value)
+            {
+                newTask.IsSchedulable = true;
+            }
+        }
+    }
+
+    private bool isSaving;
+
+    private async Task HandleValidSubmit()
+    {
+        if (newTask.IsSchedulable)
+        {
+            if (scheduleDate is null || scheduleTime is null)
+            {
+                scheduleError = "Pick both a date and time.";
+                return;
+            }
+
+            scheduleError = null;
+            newTask.Schedule = ComposeSchedule(scheduleDate, scheduleTime);
+        }
+        else
+        {
+            scheduleError = null;
+            newTask.Schedule = null;
+        }
+
+        try
+        {
+            isSaving = true;
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.GetUserId();
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                Navigation.NavigateTo("/login", forceLoad: true);
+                return;
+            }
+
+            await TaskService.CreateAsync(newTask, userId);
+            Navigation.NavigateTo("/");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private string GetPriorityClass(TaskItem.Priority priority)
+    {
+        bool isSelected = newTask.TaskPriority == priority;
+        if (isSelected)
+        {
+            return priority switch
+            {
+                TaskItem.Priority.High => "bg-red-50 border-red-200 text-red-700 ring-2 ring-red-500 ",
+                TaskItem.Priority.Medium => "bg-yellow-50 border-yellow-200 text-yellow-700 ring-2 ring-yellow-500",
+                TaskItem.Priority.Low => "bg-green-50 border-green-200 text-green-700 ring-2 ring-green-500",
+                _ => "bg-gray-100 border-gray-200 text-gray-900"
+            };
+        }
+
+        return "bg-white border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 hover:border-gray-300";
+    }
+
+    private string GetFrequencyUnit(TaskItem.RepeatFrequency frequency)
+    {
+        return frequency switch
+        {
+            TaskItem.RepeatFrequency.Daily => "Day",
+            TaskItem.RepeatFrequency.Weekly => "Week",
+            TaskItem.RepeatFrequency.Monthly => "Month",
+            TaskItem.RepeatFrequency.Yearly => "Year",
+            _ => frequency.ToString()
+        };
+    }
+
+    private DateOnly? ScheduleDate
+    {
+        get => scheduleDate;
+        set
+        {
+            scheduleDate = value;
+            UpdateScheduleFromParts();
+        }
+    }
+
+    private string ScheduleTimeText
+    {
+        get => scheduleTime.HasValue ? TimeOnly.FromTimeSpan(scheduleTime.Value).ToString("HH:mm") : string.Empty;
+        set
+        {
+            if (TimeSpan.TryParse(value, out var parsed))
+            {
+                scheduleTime = TrimToMinute(parsed);
+                scheduleError = null;
+            }
+            else
+            {
+                scheduleTime = null;
+            }
+
+            UpdateScheduleFromParts();
+        }
+    }
+
+    private void UpdateScheduleFromParts()
+    {
+        newTask.Schedule = ComposeSchedule(scheduleDate, scheduleTime);
+    }
+
+    private static DateTime? ComposeSchedule(DateOnly? date, TimeSpan? time)
+    {
+        if (date is null || time is null)
+        {
+            return null;
+        }
+
+        var local = date.Value.ToDateTime(TimeOnly.FromTimeSpan(time.Value));
+        return DateTime.SpecifyKind(local, DateTimeKind.Unspecified);
+    }
+
+    private static TimeSpan TrimToMinute(TimeSpan time) => new(time.Hours, time.Minutes, 0);
+}

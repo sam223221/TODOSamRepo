@@ -1,0 +1,71 @@
+﻿@page "/register"
+@attribute [AllowAnonymous]
+@inject NavigationManager Navigation
+
+<PageTitle>Register</PageTitle>
+
+    <div class="mx-auto grid max-w-5xl grid-cols-1 gap-5 rounded-3xl px-5 md:grid-cols-2">
+        <div class="flex flex-col justify-between gap-6 rounded-2xl border border-[#e5efdf] bg-[#f8fbf4] p-8">
+            <div class="space-y-4">
+                <p class="inline-flex items-center gap-2 rounded-full bg-[#e7f3de] px-3 py-1 text-xs font-semibold tracking-[0.2em] text-[#174928] uppercase">Join ToDo</p>
+                <h1 class="text-4xl leading-tight font-black text-[#174928]">Create your account</h1>
+                <p class="text-sm text-[#174928]/80">Keep your tasks synced, private, and ready anywhere. Passwords stay hashed with PBKDF2 and per-user salt.</p>
+            </div>
+            <div class="hidden items-center gap-3 text-sm text-[#174928]/70 md:flex">
+                <span class="h-px w-12 bg-[#174928]/30"></span>
+                <span>Already on ToDo? Sign in and keep moving.</span>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-[#e5efdf] bg-white p-8 shadow-[#174928]/15 shadow-xl">
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">@errorMessage</div>
+            }
+
+            <form method="post" action="/auth/register" class="space-y-5" onsubmit="this.querySelector('button[type=submit]').disabled=true;">
+                <input type="hidden" name="ReturnUrl" value="/" />
+
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-[#174928]">Display name</label>
+                    <input name="DisplayName" required maxlength="40" class="w-full rounded-xl border border-[#d6dfd0] bg-white px-4 py-3 text-base text-[#0b1d1f] shadow-inner shadow-black/5 placeholder:text-[#5c6b5f] focus:border-[#174928] focus:ring-2 focus:ring-[#174928]/40 focus:outline-none" />
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-[#174928]">Email</label>
+                    <input name="Email" type="email" required class="w-full rounded-xl border border-[#d6dfd0] bg-white px-4 py-3 text-base text-[#0b1d1f] shadow-inner shadow-black/5 placeholder:text-[#5c6b5f] focus:border-[#174928] focus:ring-2 focus:ring-[#174928]/40 focus:outline-none" />
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-[#174928]">Password</label>
+                    <input name="Password" type="password" required minlength="6" class="w-full rounded-xl border border-[#d6dfd0] bg-white px-4 py-3 text-base text-[#0b1d1f] shadow-inner shadow-black/5 placeholder:text-[#5c6b5f] focus:border-[#174928] focus:ring-2 focus:ring-[#174928]/40 focus:outline-none" />
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-[#174928]">Confirm password</label>
+                    <input name="ConfirmPassword" type="password" required minlength="6" class="w-full rounded-xl border border-[#d6dfd0] bg-white px-4 py-3 text-base text-[#0b1d1f] shadow-inner shadow-black/5 placeholder:text-[#5c6b5f] focus:border-[#174928] focus:ring-2 focus:ring-[#174928]/40 focus:outline-none" />
+                </div>
+
+                <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-[#174928] px-5 py-3 text-base font-bold text-white shadow-[#174928]/30 shadow-lg transition hover:scale-[1.01] disabled:opacity-60">
+                    Register
+                </button>
+            </form>
+
+            <p class="mt-6 text-center text-sm text-[#174928]/80">
+                Already have an account? <NavLink class="font-semibold text-[#174928]" href="/login">Sign in</NavLink>
+            </p>
+        </div>
+    </div>
+
+
+@code {
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
+
+    private string? errorMessage;
+
+    protected override void OnParametersSet()
+    {
+        errorMessage = Error;
+    }
+}

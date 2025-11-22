@@ -1,0 +1,154 @@
+﻿@using ToDoApp.Extensions
+@inject ITaskService TaskService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<div class="flex w-full flex-col items-center gap-8">
+    @if (_isLoading)
+    {
+        <div class="rounded-2xl bg-white px-6 py-8 text-center shadow-md">
+            <p class="text-lg font-semibold text-gray-600">Loading your tasks...</p>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="rounded-2xl bg-red-100 px-6 py-8 text-center text-red-800 shadow-md">@_errorMessage</div>
+    }
+    else if (DayGroups.Count == 0)
+    {
+        <div class="rounded-2xl bg-white px-6 py-8 text-center shadow-md">
+            <p class="text-lg font-semibold text-gray-600">No pending tasks. Enjoy your day!</p>
+        </div>
+    }
+    else
+    {
+        @foreach (var dayGroup in DayGroups)
+        {
+            <div @key="dayGroup.Key" class="w-full max-w-md rounded-[1rem] bg-[#174928] ps-4 pe-4 pt-4 shadow-md shadow-black">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-white opacity-90">
+                        @GetDateHeader(dayGroup.Key) <span class="opacity-75">@DisplayDate(dayGroup.Key)</span>
+                    </h2>
+                </div>
+
+                <div class="flex flex-col">
+                    @foreach (var task in dayGroup.Value)
+                    {
+                        <ShowTask @key="task.Id" TaskItem="@task" OnTaskCompleted="HandleTaskCompletion" OnTaskDeleted="HandleTaskDelete" />
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private static readonly DateTime UnscheduledKey = DateTime.MaxValue.Date;
+    private SortedDictionary<DateTime, List<TaskItem>> DayGroups { get; set; } = new();
+    private string? _userId;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTasksAsync();
+    }
+
+    private async Task LoadTasksAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        StateHasChanged();
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _userId = authState.User.GetUserId();
+
+        if (string.IsNullOrEmpty(_userId))
+        {
+            _isLoading = false;
+            StateHasChanged();
+            var relative = Navigation.ToBaseRelativePath(Navigation.Uri);
+            if (string.IsNullOrWhiteSpace(relative))
+            {
+                relative = "/";
+            }
+            else if (!relative.StartsWith('/'))
+            {
+                relative = "/" + relative;
+            }
+
+            Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(relative)}", forceLoad: true);
+            return;
+        }
+
+        try
+        {
+            var tasks = await TaskService.GetUpcomingAsync(_userId);
+            var grouped = tasks
+                .Where(t => !t.IsCompleted)
+                .GroupBy(t => t.IsSchedulable && t.Schedule.HasValue ? t.Schedule.Value.Date : UnscheduledKey)
+                .ToDictionary(g => g.Key, g => g.OrderBy(t => t.Schedule ?? DateTime.MaxValue).ToList());
+
+            DayGroups = new SortedDictionary<DateTime, List<TaskItem>>(grouped);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "Unable to load tasks right now. Please try again.";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleTaskCompletion(TaskItem completedTask)
+    {
+        if (string.IsNullOrEmpty(_userId))
+        {
+            return;
+        }
+
+        await TaskService.MarkCompletedAsync(completedTask.Id, _userId);
+        await LoadTasksAsync();
+    }
+
+    private async Task HandleTaskDelete(int taskId)
+    {
+        if (string.IsNullOrEmpty(_userId))
+        {
+            return;
+        }
+
+        await TaskService.DeleteAsync(taskId, _userId);
+        await LoadTasksAsync();
+    }
+
+    private static string GetDateHeader(DateTime date)
+    {
+        if (date == UnscheduledKey)
+        {
+            return "Anytime";
+        }
+        if (date.Date == DateTime.Today)
+        {
+            return "Today's Tasks";
+        }
+        if (date.Date == DateTime.Today.AddDays(1))
+        {
+            return "Tomorrow's Tasks";
+        }
+        if (date.Date == DateTime.Today.AddDays(-1))
+        {
+            return "Yesterday's Tasks";
+        }
+
+        return $"{date.DayOfWeek}'s Tasks";
+    }
+
+    private static string DisplayDate(DateTime date)
+    {
+        return date == UnscheduledKey ? string.Empty : date.ToString("dd/MM");
+    }
+}

@@ -1,0 +1,9 @@
+﻿@page "/"
+@attribute [Authorize]
+@using ToDoApp.Components.Component
+
+<PageTitle>Home</PageTitle>
+<div class="mb-8 flex items-center justify-between px-4 pt-8">
+    <h3 class="text-3xl font-extrabold text-[#1A3B2B]">Task overview</h3>
+</div>
+    <DayCollector/>    

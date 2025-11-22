@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  todoapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DOTNET_VERSION: "8.0"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      DB_NAME: ToDo
+      DB_USER: todoapp
+      DB_PASSWORD: ${DB_PASSWORD:?set-in-hostinger}
+    ports:
+      - "8080:8080"
+    volumes:
+      - todoapp-db:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  todoapp-db:

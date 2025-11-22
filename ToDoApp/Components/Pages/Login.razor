@@ -1,0 +1,134 @@
+﻿@page "/login"
+@attribute [AllowAnonymous]
+@inject NavigationManager Navigation
+
+<PageTitle>Login</PageTitle>
+
+
+    <div class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl shadow-emerald-900/10 md:flex md:max-w-5xl md:rounded-3xl">
+        
+        <!-- Brand Side (Left) -->
+        <div class="relative flex w-full flex-col justify-between bg-[#174928] p-8 text-white md:w-1/2 md:p-12">
+            <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
+            <div class="relative z-10">
+                <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-bold tracking-widest text-emerald-100 uppercase backdrop-blur-sm">
+                    ToDo App
+                </div>
+                <h1 class="mt-6 text-3xl leading-tight font-bold md:mt-8 md:text-5xl">
+                    Organize your <br class="hidden md:block" /> work & life.
+                </h1>
+                <p class="mt-3 max-w-sm text-base text-emerald-100/80 md:mt-4 md:text-lg">
+                    Join us today and experience the power of a clutter-free mind.
+                </p>
+            </div>
+            
+            <div class="relative z-10 mt-8 hidden md:mt-0 md:block">
+                <div class="flex items-center gap-4 text-sm text-emerald-100/60">
+                    <div class="flex -space-x-2 overflow-hidden">
+                        <div class="inline-block h-8 w-8 rounded-full bg-emerald-400 ring-2 ring-[#174928]"></div>
+                        <div class="inline-block h-8 w-8 rounded-full bg-emerald-300 ring-2 ring-[#174928]"></div>
+                        <div class="inline-block h-8 w-8 rounded-full bg-emerald-200 ring-2 ring-[#174928]"></div>
+                    </div>
+                    <p>Trusted by productivity enthusiasts.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Side (Right) -->
+        <div class="w-full bg-white p-6 md:w-1/2 md:p-12">
+            <div class="mb-6 text-center md:mb-8 md:text-left">
+                <h2 class="text-2xl font-bold text-slate-900 md:text-3xl">Welcome back</h2>
+                <p class="mt-1 text-sm text-slate-500 md:mt-2 md:text-base">Please enter your details to sign in.</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="mb-6 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5 flex-shrink-0">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium">@successMessage</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="mb-6 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5 flex-shrink-0">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium">@errorMessage</span>
+                </div>
+            }
+
+            <form method="post" action="/auth/login" class="space-y-6" onsubmit="this.querySelector('button[type=submit]').disabled=true;">
+                <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
+
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-slate-700">Email</label>
+                    <div class="relative">
+                        <input name="Email" type="email" required placeholder="Enter your email" 
+                               class="peer w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 pl-11 text-sm text-slate-900 transition-all outline-none placeholder:text-slate-400 hover:bg-slate-100 focus:border-[#174928] focus:bg-white focus:ring-2 focus:ring-[#174928]/20" />
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="absolute top-3.5 left-4 h-5 w-5 text-slate-400 transition-colors peer-focus:text-[#174928]">
+                            <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z" />
+                            <path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-slate-700">Password</label>
+                    <div class="relative">
+                        <input name="Password" type="password" required minlength="6" placeholder="••••••••"
+                               class="peer w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 pl-11 text-sm text-slate-900 transition-all outline-none placeholder:text-slate-400 hover:bg-slate-100 focus:border-[#174928] focus:bg-white focus:ring-2 focus:ring-[#174928]/20" />
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="absolute top-3.5 left-4 h-5 w-5 text-slate-400 transition-colors peer-focus:text-[#174928]">
+                            <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="flex cursor-pointer items-center gap-2.5">
+                        <div class="relative flex items-center">
+                            <input name="RememberMe" type="checkbox" class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 bg-white transition-all checked:border-[#174928] checked:bg-[#174928]" />
+                            <svg class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity peer-checked:opacity-100" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <span class="text-sm font-medium text-slate-600 select-none">Remember for 30 days</span>
+                    </label>
+                    <a class="text-sm font-semibold text-[#174928] hover:text-[#0f3419] hover:underline" href="mailto:support@example.com">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-[#174928] px-5 py-3.5 text-sm font-bold text-white shadow-[#174928]/30 shadow-lg transition-all hover:scale-[1.02] hover:shadow-[#174928]/40 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70">
+                    <span class="relative z-10">Sign In</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="relative z-10 h-5 w-5 transition-transform group-hover:translate-x-1">
+                        <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </form>
+
+            <p class="mt-8 text-center text-sm text-slate-500">
+                Don't have an account? <NavLink class="font-bold text-[#174928] hover:underline" href="/register">Create free account</NavLink>
+            </p>
+        </div>
+    </div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
+
+    [SupplyParameterFromQuery(Name = "registered")]
+    public string? Registered { get; set; }
+
+    private string? errorMessage;
+    private string? successMessage;
+
+    protected override void OnParametersSet()
+    {
+        errorMessage = Error;
+        successMessage = string.Equals(Registered, "1", StringComparison.Ordinal)
+            ? "Account created! Please sign in to continue."
+            : null;
+    }
+}

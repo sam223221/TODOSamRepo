@@ -1,0 +1,11 @@
+wwwroot\app.css
+wwwroot\favicon.png
+wwwroot\app.output.css
+wwwroot\output.css
+C:\Users\samgl\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.0\build\..\_framework\blazor.web.js
+C:\Users\samgl\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.0\build\..\_framework\blazor.server.js
+C:\Users\samgl\source\repos\ToDoApp\wwwroot\app.css
+C:\Users\samgl\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.0\_framework\blazor.web.js
+C:\Users\samgl\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.0\_framework\blazor.server.js
+C:\Users\samgl\source\repos\ToDoApp\wwwroot\app.output.css
+C:\Users\samgl\source\repos\ToDoApp\wwwroot\output.css

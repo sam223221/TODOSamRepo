@@ -1,0 +1,176 @@
+﻿<div class="relative mb-4">
+    <div class="rounded-2xl bg-white p-5 shadow-lg @(IsCompleted ? "opacity-50" : string.Empty)">
+    <div class="mb-4 flex items-start justify-between">
+        <div class="w-full pr-4">
+            <div class="mb-2">
+                <h4 class="text-2xl font-bold text-black">@TaskItem.Title</h4>
+                @if (!string.IsNullOrWhiteSpace(TaskItem.Description))
+                {
+                    <p class="text-sm text-gray-500">Last updated @TaskItem.CreatedAt.ToLocalTime().ToString("d")</p>
+                }
+            </div>
+            <div class="text-sm text-gray-600">
+                <p class="inline whitespace-pre-wrap">@DisplayDescription</p>
+                @if (ShouldShowToggle)
+                {
+                    <button type="button" @onclick="ToggleDescription" @onclick:stopPropagation="true" class="ml-2 inline-block rounded-full bg-[#d9f99d] px-3 py-1 text-xs font-bold text-[#365314] hover:bg-[#bef264]">
+                        @(IsExpanded ? "see less" : "see more")
+                    </button>
+                }
+            </div>
+        </div>
+        
+        <div class="flex shrink-0 flex-col items-center ml-2">
+            @if (TaskItem.IsSchedulable && TaskItem.Schedule.HasValue)
+            {
+                <span class="block text-3xl font-black text-black">@TaskItem.Schedule.Value.ToLocalTime().ToString("HH:mm")</span>
+            }
+            else
+            {
+                 <span class="block text-3xl font-black text-black">All Day</span>
+            }
+            <div class="mt-2 flex gap-2">
+                <NavLink class="rounded-full bg-[#B1CF5F] px-3 py-1 text-xs font-bold text-[#1A3B2B] hover:bg-[#9cc843]" href="@($"/tasks/{TaskItem.Id}/edit")">Edit</NavLink>
+                <button type="button" class="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700 hover:bg-red-200" @onclick="RequestDelete">Delete</button>
+            </div>
+             <div class="mt-2 flex items-center gap-2">
+                <span class="font-bold text-black">@TaskItem.TaskPriority</span>
+                <div class="flex gap-1">
+                    <div class="h-2 w-2 rounded-full @(TaskItem.TaskPriority == TaskItem.Priority.Low ? "bg-green-500 scale-150" : "bg-gray-300")"></div>
+                    <div class="h-2 w-2 rounded-full @(TaskItem.TaskPriority == TaskItem.Priority.Medium ? "bg-yellow-500 scale-150" : "bg-gray-300")"></div>
+                    <div class="h-2 w-2 rounded-full @(TaskItem.TaskPriority == TaskItem.Priority.High ? "bg-red-500 scale-150" : "bg-gray-300")"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="relative mt-4">
+        @if (!IsCompleted)
+        {
+            <div class="group relative flex h-14 w-full items-center overflow-hidden rounded-full bg-gray-200 shadow-inner shadow-black">
+                <div class="pointer-events-none absolute top-1 bottom-1 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-[#174928] shadow-sm shadow-black transition-all duration-75 ease-out"
+                     style="left: calc(@(SwipeValue.ToString(System.Globalization.CultureInfo.InvariantCulture))% - @((SwipeValue * 0.6).ToString(System.Globalization.CultureInfo.InvariantCulture))px + 4px);">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-6 w-6 text-white">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                </div>
+
+                <span class="z-0 w-full text-center text-lg font-bold text-gray-400 transition-opacity duration-200" style="opacity: @((1 - SwipeValue/100.0).ToString(System.Globalization.CultureInfo.InvariantCulture))">Swipe when done</span>
+
+                <input type="range" min="0" max="100" step="1"
+                       @bind="SwipeValue"
+                       @bind:event="oninput"
+                       @onmouseup="HandleDragEnd"
+                       @ontouchend="HandleDragEnd"
+                       class="absolute inset-0 z-20 h-full w-full cursor-pointer opacity-0" />
+            </div>
+        }
+        else
+        {
+             <div class="flex h-14 w-full items-center justify-center rounded-full bg-green-100 text-lg font-bold text-green-800">
+                 Completed!
+             </div>
+        }
+    </div>
+    </div>
+
+    @if (ShowDeleteConfirmation)
+    {
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" @onclick="CancelDelete">
+             <div class="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5" @onclick:stopPropagation>
+                <div class="p-6">
+                    <h3 class="text-lg font-bold text-slate-900">Delete Task</h3>
+                    <p class="mt-2 text-sm text-gray-500">Are you sure you want to delete "@TaskItem.Title"? This action cannot be undone.</p>
+                </div>
+                <div class="flex justify-end gap-3 bg-gray-50 px-6 py-4">
+                    <button type="button" @onclick="CancelDelete" class="rounded-full bg-white px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-gray-300 hover:bg-gray-50">Cancel</button>
+                    <button type="button" @onclick="PerformDelete" class="rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-red-700">Delete</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public TaskItem TaskItem { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<TaskItem> OnTaskCompleted { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnTaskDeleted { get; set; }
+
+    private bool IsExpanded { get; set; }
+
+    private bool ShouldShowToggle => !string.IsNullOrEmpty(TaskItem.Description) &&
+                                     (TaskItem.Description!.Length > 100 ||
+                                      TaskItem.Description!.Split('\n').Length > 3);
+
+    private string DisplayDescription
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(TaskItem.Description))
+            {
+                return "No description provided.";
+            }
+
+            if (IsExpanded || !ShouldShowToggle)
+            {
+                return TaskItem.Description!;
+            }
+
+            if (TaskItem.Description!.Length > 100)
+            {
+                return TaskItem.Description.Substring(0, 100) + "...";
+            }
+            var lines = TaskItem.Description.Split('\n');
+            if (lines.Length > 3)
+            {
+                return string.Join('\n', lines.Take(3)) + "...";
+            }
+            return TaskItem.Description;
+        }
+    }
+
+    private void ToggleDescription()
+    {
+        IsExpanded = !IsExpanded;
+    }
+
+    private double SwipeValue { get; set; }
+    private bool IsCompleted => TaskItem.IsCompleted;
+
+    private async Task HandleDragEnd()
+    {
+        if (SwipeValue > 90)
+        {
+            SwipeValue = 100;
+            TaskItem.IsCompleted = true;
+            await OnTaskCompleted.InvokeAsync(TaskItem);
+        }
+        else
+        {
+            SwipeValue = 0;
+        }
+    }
+
+    private bool ShowDeleteConfirmation { get; set; }
+
+    private void RequestDelete()
+    {
+        ShowDeleteConfirmation = true;
+    }
+
+    private void CancelDelete()
+    {
+        ShowDeleteConfirmation = false;
+    }
+
+    private async Task PerformDelete()
+    {
+        ShowDeleteConfirmation = false;
+        await OnTaskDeleted.InvokeAsync(TaskItem.Id);
+    }
+}

@@ -1,0 +1,32 @@
+﻿@using System
+@inject NavigationManager Navigation
+
+@if (!_navigated)
+{
+    <div class="rounded-2xl bg-white px-6 py-6 text-center text-[#1A3B2B] shadow-lg">
+        <p class="text-lg font-semibold">Redirecting to login...</p>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? ReturnUrl { get; set; }
+
+    private bool _navigated;
+
+    protected override void OnInitialized()
+    {
+        var baseRelative = string.IsNullOrWhiteSpace(ReturnUrl)
+            ? Navigation.ToBaseRelativePath(Navigation.Uri)
+            : ReturnUrl;
+
+        if (!baseRelative.StartsWith('/'))
+        {
+            baseRelative = "/" + baseRelative.TrimStart('/');
+        }
+
+        var encoded = Uri.EscapeDataString(baseRelative);
+        _navigated = true;
+        Navigation.NavigateTo($"/login?returnUrl={encoded}", forceLoad: true);
+    }
+}
