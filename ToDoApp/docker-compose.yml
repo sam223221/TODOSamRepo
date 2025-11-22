@@ -5,18 +5,25 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        DOTNET_VERSION: "8.0"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       DB_NAME: ToDo
       DB_USER: todoapp
       DB_PASSWORD: verydangeruspassword
-    ports:
-      - "80:8080"      # host:container
+    expose:
+      - "8080"
     volumes:
       - todoapp-db:/var/lib/mysql
-    restart: unless-stopped
+
+  caddy:
+    image: caddy:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      - todoapp
 
 volumes:
   todoapp-db:

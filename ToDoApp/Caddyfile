@@ -1,0 +1,3 @@
+softwaresolutiongledisheygg.com {
+    reverse_proxy todoapp:8080
+}
